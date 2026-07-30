@@ -1,15 +1,26 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
 
-const YTDLP_PATH = path.join(os.homedir(), '.local/bin/yt-dlp');
+const YTDLP_PATH = process.env.YTDLP_PATH || path.join(os.homedir(), '.local/bin/yt-dlp');
 const COOKIES_PATH = path.join(__dirname, 'cookies.txt');
+
+// En la nube no hay forma de subir cookies.txt directo (está gitignoreado): se puede
+// pegar su contenido en la variable de entorno YTDLP_COOKIES y acá se escribe a disco.
+if (process.env.YTDLP_COOKIES) {
+  fs.writeFileSync(COOKIES_PATH, process.env.YTDLP_COOKIES);
+}
+
+function cookiesArgs() {
+  return fs.existsSync(COOKIES_PATH) ? ['--cookies', COOKIES_PATH] : [];
+}
 
 function getSongInfo(query) {
   return new Promise((resolve, reject) => {
     const isUrl = /^https?:\/\//i.test(query);
     const target = isUrl ? query : `ytsearch5:${query}`;
-    const args = ['--flat-playlist', '--no-warnings', '--cookies', COOKIES_PATH, '--dump-json', target];
+    const args = ['--flat-playlist', '--no-warnings', ...cookiesArgs(), '--dump-json', target];
     const proc = spawn(YTDLP_PATH, args);
 
     let out = '';
@@ -56,8 +67,7 @@ function getPlaylistInfo(url) {
     const args = [
       '--flat-playlist',
       '--no-warnings',
-      '--cookies',
-      COOKIES_PATH,
+      ...cookiesArgs(),
       '--dump-json',
       '--playlist-end',
       String(PLAYLIST_LIMIT),
@@ -101,8 +111,7 @@ function createAudioStream(url) {
   const proc = spawn(YTDLP_PATH, [
     '--no-playlist',
     '--no-warnings',
-    '--cookies',
-    COOKIES_PATH,
+    ...cookiesArgs(),
     '-f',
     'bestaudio',
     '-o',

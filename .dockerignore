@@ -1,0 +1,8 @@
+node_modules
+activity/node_modules
+activity/dist
+.env
+activity/.env
+cookies.txt
+*.log
+.git

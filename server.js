@@ -97,9 +97,10 @@ function startActivityServer() {
     console.error('[activity] Error del servidor HTTP:', error.message);
   });
 
-  const port = process.env.ACTIVITY_PORT || 3000;
+  // Railway (y la mayoría de las plataformas cloud) inyectan PORT y esperan que el proceso escuche ahí.
+  const port = process.env.PORT || process.env.ACTIVITY_PORT || 3000;
   httpServer.listen(port, () => {
-    console.log(`[activity] Panel disponible en http://localhost:${port}`);
+    console.log(`[activity] Panel disponible en el puerto ${port}`);
   });
 
   return httpServer;
