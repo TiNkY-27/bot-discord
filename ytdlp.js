@@ -118,7 +118,13 @@ function createAudioStream(url) {
     '-',
     url,
   ]);
-  proc.stderr.on('data', () => {});
+  let err = '';
+  proc.stderr.on('data', (d) => (err += d));
+  proc.on('close', (code) => {
+    if (code !== 0 && code !== null) {
+      console.error(`yt-dlp terminó con código ${code} para ${url}:\n${err.trim()}`);
+    }
+  });
   return proc;
 }
 
